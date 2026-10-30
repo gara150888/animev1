@@ -14,11 +14,8 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 import {
-  CalendarClockIcon,
-  ChartPieIcon,
-  CreditCardIcon,
   LayoutDashboardIcon,
-  SettingsIcon,
+  SettingsIcon
 } from "lucide-react"
 import Link from "next/link"
 
@@ -38,24 +35,6 @@ const data: {
       title: "Dashboard",
       url: "/dashboard",
       icon: <LayoutDashboardIcon />,
-      items: [],
-    },
-    {
-      title: "Subscriptions",
-      url: "/subscriptions",
-      icon: <CreditCardIcon />,
-      items: [],
-    },
-    {
-      title: "Upcoming renewals",
-      url: "/renewals",
-      icon: <CalendarClockIcon />,
-      items: [],
-    },
-    {
-      title: "Analytics",
-      url: "/analytics",
-      icon: <ChartPieIcon />,
       items: [],
     },
     {
