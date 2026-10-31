@@ -23,3 +23,21 @@ export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
     },
   });
 });
+
+const admins = ["vg312809@gmail.com"];
+
+export const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
+  if (ctx.session && !admins.includes(ctx.session.user.email)) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "Admin access required",
+      cause: "Not an admin",
+    });
+  }
+  return next({
+    ctx: {
+      ...ctx,
+      session: ctx.session,
+    },
+  });
+});

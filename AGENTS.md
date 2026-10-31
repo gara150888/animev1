@@ -1,141 +1,56 @@
-# Zlo
+# Zlo — Anime / Subscription Tracker
 
-This file provides context about the project for AI assistants.
+## Overview
+Zlo is a monorepo (Turborepo + Bun) for a subscription/anime tracking web app. It tracks recurring charges, normalises weekly/monthly/yearly billing into one monthly cost, and warns before renewals. Includes watch history, watchlist, dashboard, analytics, and content/genre/anime data.
 
-## Project Overview
-
-- **Ecosystem**: TypeScript
-
-## Tech Stack
-
-- **Runtime**: none
-- **Package Manager**: bun
-
-### Frontend
-
-- Framework: next
-- CSS: tailwind
-- UI Library: shadcn-ui
-
-### Backend
-
-- Framework: self
-- API: trpc
-- Validation: zod
-
-### Database
-
-- Database: postgres
-- ORM: drizzle
-
-### Authentication
-
-- Provider: better-auth
-
-### Additional Features
-
-- Testing: vitest
-
-## Project Structure
-
+## Repo layout
 ```
-Zlo/
-├── apps/
-│   ├── web/         # Frontend application
-├── packages/
-│   ├── api/         # API layer
-│   ├── auth/        # Authentication
-│   └── db/          # Database schema
+apps/web/            Next.js 16 app (port 3000), React 19, Tailwind 4, shadcn/ui
+packages/api/        tRPC API (@Zlo/api), routers, context, server services
+packages/auth/       better-auth (@Zlo/auth), drizzle adapter, PG provider
+packages/config/     shared tsconfig base (@Zlo/config)
+packages/db/         drizzle-orm + neon (@Zlo/db), schema, migrations, crypto
+packages/env/        @t3-oss/env schemas (@Zlo/env): server/web/native
+packages/zod/        shared zod schemas (@Zlo/zod): subscription, reminder, dashboard, analytics, calculations
 ```
 
-## Common Commands
+## Key tech stack
+- Runtime/package manager: Bun 1.3.14 (isolated linker)
+- Framework: Next.js 16 (turbopack, reactCompiler, typedRoutes), React 19
+- API: tRPC 11 (@trpc/server, @trpc/client, @trpc/tanstack-react-query), TanStack Query 5
+- Auth: better-auth 1.6.22 + @better-auth/drizzle-adapter, email/password + Google
+- DB: PostgreSQL via @neondatabase/serverless, drizzle-orm 0.45.3
+- Validation: zod 4
+- Env: @t3-oss/env-core / @t3-oss/env-nextjs
+- Styling: Tailwind CSS 4, class-variance-authority, clsx, cn, lucide-react, motion, sonner
+- Testing: vitest 4, jsdom, @testing-library/*
+- TypeScript: ^6.0.3 (root), strict mode, noUnusedLocals/Parameters, isolatedModules
 
-- `bun install` - Install dependencies
-- `bun dev` - Start development server
-- `bun build` - Build for production
-- `bun test` - Run tests
-- `bun db:push` - Push database schema
-- `bun db:studio` - Open database UI
+## Scripts (root)
+- `dev` — `turbo dev`
+- `build` — `turbo build`
+- `check-types` — `turbo check-types`
+- `dev:web` — `turbo -F web dev`
+- `db:push` / `db:studio` / `db:generate` / `db:migrate` — `turbo -F @Zlo/db <cmd>`
+- `test` — `bun run --filter @Zlo/api test`
 
-## Deployment
+## Important implementation details
+- **tRPC**: entry at `packages/api/src/index.ts`; `publicProcedure`, `protectedProcedure` (requires session), `adminProcedure` (hardcoded admin `vg312809@gmail.com`). Routers in `packages/api/src/routers/` (`index.ts` exports `appRouter` + `HomeRouter`; `home.ts`).
+- **Auth context**: `packages/api/src/context.ts` creates `Context { session }` from `better-auth` session via `NextRequest` headers.
+- **Auth**: `packages/auth/src/index.ts` builds `betterAuth` with drizzle adapter (PG), `emailAndPassword.enabled`, Google social provider, `nextCookies()` plugin. Trusted origin from `env.CORS_ORIGIN`.
+- **DB client**: `packages/db/src/index.ts` — `neon(env.DATABASE_URL)` + `drizzle(sql, { schema })`. Schema split into `schema/auth/` and `schema/content/` (content.ts, enums.ts, episodes.ts, genres.ts, seasons.ts, sources.ts, users.ts, watch-history.ts, watchlist.ts, content-genres.ts).
+- **Env**: `packages/env/src/server.ts` validates `DATABASE_URL`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `CORS_ORIGIN`, `NODE_ENV`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`. `web.ts` is empty client env. `native.ts` for `EXPO_PUBLIC_` prefix (unused).
+- **Crypto**: `packages/db/src/server/crypto.ts` — AES-256-GCM encryption for Instagram tokens (`INSTAGRAM_ENCRYPTION_KEY` env required).
+- **tRPC client**: `apps/web/src/utils/trpc.ts` — `httpBatchLink` to `/api/trpc` with `credentials: "include"`.
+- **Auth client**: `apps/web/src/lib/auth-client.ts` — `createAuthClient({})` from better-auth/react.
+- **Routes**: `apps/web/src/lib/routes.ts` exports `AppRoute = Route`. App router under `apps/web/src/app/` (`page.tsx` hero, `layout.tsx`, `(protected)/`, `login/`, `api/`, `opengraph-image.tsx`, `robots.ts`, `sitemap.ts`, `types/logo.ts`).
+- **SEO**: `apps/web/src/lib/seo.ts` + `components/seo/json-ld.tsx`; structured data for Organization/WebSite/WebApplication (FinanceApplication).
+- **turbo.json**: global env passthrough includes `DATABASE_URL`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `CORS_ORIGIN`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `NODE_ENV`. `dev` task is persistent & uncached.
+- **vercel.json**: routes everything to `apps/web` Next.js service.
+- **tsconfig**: root extends `@Zlo/config/tsconfig.base.json` (strict, ESNext, bundler resolution, verbatimModuleSyntax, noUncheckedIndexedAccess).
 
-- Host: Vercel, configured by root `vercel.json` in services mode.
-- **One deployable service only**: `web` (root `apps/web`, Next.js framework), public on all
-  paths via the catch-all rewrite `/(.*)`.
-- `packages/*` are **libraries, not services** — `packages/api` (tRPC routers) and
-  `packages/env` (env validation) are compiled into the web app. `packages/api` has no HTTP
-  entrypoint; its routers are mounted by `apps/web/src/app/api/trpc/[trpc]/route.ts` and auth
-  by `apps/web/src/app/api/auth/[...all]/route.ts`. Do not declare them as Vercel services.
-- No service bindings exist and none are needed: the only outbound HTTP is same-origin
-  (`/api/trpc`, `/logos/logos.json`). The tRPC client runs in the browser, where Vercel
-  bindings cannot resolve.
-- Required runtime env vars (validated by `packages/env/src/server.ts`, throws if missing):
-  `DATABASE_URL`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `CORS_ORIGIN`,
-  `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `NODE_ENV`.
-
-## Better Fullstack project context
-
-`bts.jsonc` is the authority for the current Stack Graph. Its `stackParts` array owns role selection and `ownerPartId` bindings. Top-level option fields are a compatibility projection and must not become a second mutation path.
-
-### Stack Parts, ownership, and evidence
-
-- `backend.api:typescript:trpc`. It belongs to `backend:typescript:self`. Evidence is `listed` with `unverified` freshness. Verification maintainer: @Marve10s.
-- `backend.auth:typescript:better-auth`. It belongs to `backend:typescript:self`. Evidence is `listed` with `unverified` freshness. Verification maintainer: @Marve10s.
-- `backend.effect:typescript:effect`. It belongs to `backend:typescript:self`. Evidence is `listed` with `unverified` freshness. Verification maintainer: @Marve10s.
-- `backend.orm:typescript:drizzle`. It belongs to `backend:typescript:self`. Evidence is `listed` with `unverified` freshness. Verification maintainer: @Marve10s.
-- `backend.testing:typescript:vitest`. It belongs to `backend:typescript:self`. Evidence is `listed` with `unverified` freshness. Verification maintainer: @Marve10s.
-- `backend.validation:typescript:zod`. It belongs to `backend:typescript:self`. Evidence is `listed` with `unverified` freshness. Verification maintainer: @Marve10s.
-- `backend:typescript:self`. Its generated target is `apps/server`. Evidence is not mapped for this installed option.
-- `database.dbSetup:universal:neon`. It belongs to `database:universal:postgres`. Evidence is `listed` with `unverified` freshness. Verification maintainer: @Marve10s.
-- `database:universal:postgres`. Its generated target is `packages/db`. Evidence is `listed` with `unverified` freshness. Verification maintainer: @Marve10s.
-- `frontend.css:typescript:tailwind`. It belongs to `frontend:typescript:next`. Evidence is `listed` with `unverified` freshness. Verification maintainer: @Marve10s.
-- `frontend.forms:typescript:react-hook-form`. It belongs to `frontend:typescript:next`. Evidence is `listed` with `unverified` freshness. Verification maintainer: @Marve10s.
-- `frontend.ui:typescript:shadcn-ui`. It belongs to `frontend:typescript:next`. Evidence is `listed` with `unverified` freshness. Verification maintainer: @Marve10s.
-- `frontend:typescript:next`. Its generated target is `apps/web`. Evidence is `listed` with `unverified` freshness. Verification maintainer: @Marve10s.
-- `workspaceRunner:universal:turborepo`. Evidence is `listed` with `unverified` freshness. Verification maintainer: @Marve10s.
-
-### Installed-version authority
-
-Use `bts.jsonc` for the generator and schema version. Use local package manifests and lockfiles for installed dependency versions. Do not assume that documentation for a newer Better Fullstack release matches this project.
-
-### Compatibility and lifecycle safety
-
-Run `create-better-fullstack context --json` for bounded roles, capabilities, evidence, compatibility issues, and safe next actions. Run `create-better-fullstack doctor --json` before repairing graph drift. Existing-project writes must start with a plan and use the exact review token. Use `create-better-fullstack recipes check --json` before editing recipe-owned paths or managed regions, and use recipe history plus project recovery commands to undo a reviewed operation.
-
-User code outside an explicit Better Fullstack managed region is not generator-owned. Missing or changed managed-region hashes stop recipe planning for manual review.
-
-<!-- <better-fullstack:recipes sha256=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855> -->
-
-<!-- </better-fullstack:recipes> -->
-
-## Cross-Session AI Memory (MANDATORY)
-
-`AI_MEMORY.md` is the shared long-term memory for AI sessions working on this repo. It exists so no
-session repeats work, re-litigates decisions, or retries dead ends. It is committed to git on purpose
-— keep it committed.
-
-Every session MUST follow its protocol:
-
-1. **Read** `AI_MEMORY.md` in full at the start, before writing code, together with
-   `git log --oneline -10` and `git status` to reconcile reality with what it records.
-2. **Use** it during the session: check its "Do Not Repeat", "Known Issues", and "Decisions"
-   sections before starting a task, and use its repo map instead of re-exploring from scratch. Add
-   new non-obvious findings immediately, not only at the end.
-3. **Update** it before handing back: add exactly one entry to "Session Log" (newest first), rewrite
-   "Handoff / Next Steps" for a blind successor, prune it to stay under ~200 lines, and include the
-   file in your commit (`git add AI_MEMORY.md`). An uncommitted memory file is invisible to the
-   next session.
-
-Keep `AI_MEMORY.md` updated when: a task is completed, a decision is made, an approach is abandoned
-as a dead end, a new service or package is added, or build/dev workflows change.
-
-## Maintenance
-
-Keep AGENTS.md updated when:
-
-- Adding/removing dependencies
-- Changing project structure
-- Adding new features or services
-- Modifying build/dev workflows
-
-AI assistants should suggest updates to this file when they notice relevant changes.
+## Conventions
+- Workspace packages use `"type": "module"` and ESM exports via `package.json` `exports` map.
+- Import workspace packages as `@Zlo/<name>`.
+- Components under `apps/web/src/components/` (ui/, layout/, seo/).
+- No commits unless explicitly requested. Run `check-types` / `build` / `test` before considering work complete.

@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/sidebar"
 
 const routeLabels: Record<string, string> = {
+  home: "Home",
   dashboard: "Dashboard",
   subscriptions: "Subscriptions",
   renewals: "Upcoming renewals",
@@ -39,7 +40,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   const searchSubscriptions = (value: string) => {
     const term = value.trim()
-    router.push(term ? `/subscriptions?q=${encodeURIComponent(term)}` : "/subscriptions")
+    router.push((term ? `/subscriptions?q=${encodeURIComponent(term)}` : "/subscriptions") as any)
   }
 
   return (
@@ -57,7 +58,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <Breadcrumb>
                 <BreadcrumbList>
                   <BreadcrumbItem className="hidden md:block">
-                    <BreadcrumbLink render={<Link href="/dashboard" />}>
+                    <BreadcrumbLink render={<Link href="/home" />}>
                       Zlo
                     </BreadcrumbLink>
                   </BreadcrumbItem>

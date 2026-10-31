@@ -15,7 +15,7 @@ export function GoogleAuthButton({ mode = "signin" }: { mode?: "signin" | "signu
     try {
       await authClient.signIn.social({
         provider: "google",
-        callbackURL: "/dashboard",
+        callbackURL: "/home",
       });
     } catch (error: unknown) {
       const err = error as { message?: string };
