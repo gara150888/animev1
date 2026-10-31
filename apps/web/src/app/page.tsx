@@ -1,29 +1,32 @@
 "use client";
 
-import Link from "next/link";
 import { ArrowRight, LayoutDashboardIcon } from "lucide-react";
+import Link from "next/link";
 
-import { Announcement } from "@/components/layout/announcement/announcement";
-import { Button } from "@/components/ui/button";
 import { Dither } from "@/components/ui/beams";
-import { useTheme } from "next-themes";
+import { Button } from "@/components/ui/button";
 
 export default function Hero() {
-  const { resolvedTheme } = useTheme();
-
-  const logo = resolvedTheme === "dark" ? "/assets/logo_white.png" : "/assets/logo_black.png";
-
   return (
     <main className="flex flex-1 items-center justify-center">
       <Dither color="#9fb4ff" scale={3} speed={1} interactive={false} pixelSize={3} className="-z-10 opacity-10" />
-
       <div className="flex max-w-xl flex-col items-center gap-6 px-6 text-center z-10">
-
-        <img data-no-hover data-no-focus-ring suppressHydrationWarning={true} src={logo} alt="Zlo logo" className="size-20 sm:size-24" />
-
-        <Announcement href="/dashboard" tag="New" className="hidden md:flex">
-          Renewal reminders and spending analytics
-        </Announcement>
+        <div className="flex items-center justify-center">
+          <img
+            data-no-hover
+            data-no-focus-ring
+            src="/assets/logo_black.png"
+            alt="Zlo logo"
+            className="size-20 sm:size-24 dark:hidden"
+          />
+          <img
+            data-no-hover
+            data-no-focus-ring
+            src="/assets/logo_white.png"
+            alt="Zlo logo"
+            className="size-20 sm:size-24 hidden dark:block"
+          />
+        </div>
 
         <h1 className="text-4xl font-semibold tracking-tight text-balance text-foreground sm:text-5xl">
           Know what your subscriptions really cost
@@ -43,13 +46,14 @@ export default function Hero() {
             size="lg"
             variant="ghost"
             nativeButton={false}
-            render={<Link href="/dashboard" />}
+            render={<Link href="/home" />}
           >
             <LayoutDashboardIcon aria-hidden data-icon="inline-start" />
-            Open dashboard
+            Open home
           </Button>
         </div>
       </div>
     </main>
   );
 }
+

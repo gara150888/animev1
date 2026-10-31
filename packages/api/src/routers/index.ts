@@ -1,9 +1,9 @@
 import { protectedProcedure, publicProcedure, router } from "../index";
-import { dashboardRouter } from "./dashboard";
+import { HomeRouter } from "./home";
 
 export const appRouter = router({
   healthCheck: publicProcedure.query(() => "OK"),
-  dashboard: dashboardRouter,
+  home: HomeRouter,
   privateData: protectedProcedure.query(({ ctx }) => {
     return {
       message: "This is private",
@@ -15,6 +15,6 @@ export const appRouter = router({
 export type AppRouter = typeof appRouter;
 
 export {
-  dashboardRouter
+  HomeRouter
 };
 

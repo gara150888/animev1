@@ -20,7 +20,6 @@ import {
 import Link from "next/link"
 
 import type { AppRoute } from "@/lib/routes"
-import { useTheme } from "next-themes"
 
 const data: {
   navMain: {
@@ -32,8 +31,8 @@ const data: {
 } = {
   navMain: [
     {
-      title: "Dashboard",
-      url: "/dashboard",
+      title: "Home",
+      url: "/home",
       icon: <LayoutDashboardIcon />,
       items: [],
     },
@@ -47,19 +46,27 @@ const data: {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-
-  const { resolvedTheme } = useTheme()
-
-  const logo = resolvedTheme === "dark" ? "/assets/logo_white.png" : "/assets/logo_black.png";
-
   return (
     <Sidebar variant="inset" {...props}>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="lg" render={<Link href="/dashboard" />}>
+            <SidebarMenuButton size="lg" render={<Link href="/home" />}>
               <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-transparent text-sidebar-primary-foreground">
-                <img data-no-hover data-no-focus-ring suppressHydrationWarning={true} src={logo} alt="Zlo logo" className="size-7" />
+                <img
+                  data-no-hover
+                  data-no-focus-ring
+                  src="/assets/logo_black.png"
+                  alt="Zlo logo"
+                  className="size-7 dark:hidden"
+                />
+                <img
+                  data-no-hover
+                  data-no-focus-ring
+                  src="/assets/logo_white.png"
+                  alt="Zlo logo"
+                  className="size-7 hidden dark:block"
+                />
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-semibold">Zlo</span>

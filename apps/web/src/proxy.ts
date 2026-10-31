@@ -5,15 +5,9 @@ export async function proxy(request: NextRequest) {
   const sessionCookie = getSessionCookie(request);
   const { pathname } = request.nextUrl;
 
-  // comment
-
   const isAuthRoute = pathname.startsWith("/login");
-  const isProtectedRoute =
-    pathname.startsWith("/dashboard") ||
-    pathname.startsWith("/subscriptions") ||
-    pathname.startsWith("/renewals") ||
-    pathname.startsWith("/analytics") ||
-    pathname.startsWith("/settings");
+  const isProtectedRoute = pathname.startsWith("/restricted")
+  const isAdminCheck = pathname.startsWith("/admin")
 
   if (isProtectedRoute && !sessionCookie) {
     const loginUrl = new URL("/login", request.url);
@@ -22,7 +16,7 @@ export async function proxy(request: NextRequest) {
   }
 
   if (isAuthRoute && sessionCookie) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+    return NextResponse.redirect(new URL("/home", request.url));
   }
 
   return NextResponse.next();
