@@ -1,6 +1,6 @@
 import { protectedProcedure, publicProcedure, router } from "../index";
-import { HomeRouter } from "./home";
-import { adminRouter, type AdminRouter } from "./admin";
+import { HomeRouter } from "./route/home";
+import { adminRouter, type AdminRouter } from "./route/admin";
 
 export const appRouter = router({
   healthCheck: publicProcedure.query(() => "OK"),

@@ -1,4 +1,4 @@
-import { adminProcedure, router } from "../index";
+import { adminProcedure, router } from "../../index";
 import { db } from "@Zlo/db";
 
 export const adminRouter = router({
