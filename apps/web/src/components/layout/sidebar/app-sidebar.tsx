@@ -15,13 +15,22 @@ import {
 } from "@/components/ui/sidebar"
 import {
   LayoutDashboardIcon,
-  SettingsIcon
+  SettingsIcon,
+  Shield
 } from "lucide-react"
 import Link from "next/link"
 
 import type { AppRoute } from "@/lib/routes"
+import { NavAdmin } from "../navigation/nav-admin"
 
 const data: {
+  navAdmin: {
+    title: string
+    url: AppRoute
+    icon: React.ReactNode
+    isActive?: boolean
+    items: { title: string; url: AppRoute }[]
+  }[],
   navMain: {
     title: string
     url: AppRoute
@@ -29,6 +38,24 @@ const data: {
     items: { title: string; url: AppRoute }[]
   }[]
 } = {
+  navAdmin: [
+    {
+      title: "Admin",
+      url: "/admin",
+      icon: <Shield />,
+      isActive: true,
+      items: [
+        {
+          title: "Users",
+          url: "/admin/users",
+        },
+        {
+          title: "Roles",
+          url: "/admin/roles",
+        },
+      ],
+    },
+  ],
   navMain: [
     {
       title: "Home",
@@ -77,6 +104,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
+        <NavAdmin items={data.navAdmin} />
         <NavMain items={data.navMain} />
       </SidebarContent>
       <SidebarFooter>
