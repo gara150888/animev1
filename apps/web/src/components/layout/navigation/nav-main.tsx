@@ -23,27 +23,6 @@ import type { AppRoute } from "@/lib/routes"
 import { trpc } from "@/utils/trpc"
 import { useQuery } from "@tanstack/react-query"
 
-const isAdminJson = {
-  title: "Admin",
-  url: "/admin",
-  icon: <ShieldUser />,
-}
-
-const isAdminComponent = (item: any, isActive: boolean) => {
-  return (
-    <Collapsible defaultOpen={item.isActive} render={<SidebarMenuItem />}>
-      <SidebarMenuButton
-        tooltip={item.title}
-        isActive={isActive}
-        render={<Link href={item.url} />}
-      >
-        {item.icon}
-        <span>{item.title}</span>
-      </SidebarMenuButton>
-    </Collapsible>
-  )
-}
-
 export function NavMain({
   items,
 }: {
@@ -59,13 +38,38 @@ export function NavMain({
   }[]
 }) {
   const pathname = usePathname()
-  const { data: isAdmin } = useQuery(trpc.home.isAdmin.queryOptions())
+  const { data: isAdmin, isPending } = useQuery(trpc.home.isAdmin.queryOptions())
+
+  if (isPending) {
+    return (
+      <SidebarGroup>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton render={<Link href="#" className="cursor-not-allowed" />}>
+              <span className="animate-pulse">Loading...</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarGroup>
+    )
+  }
 
   return (
     <SidebarGroup>
       <SidebarMenu>
 
-        {isAdmin && isAdminComponent(isAdminJson, pathname === isAdminJson.url)}
+        {isAdmin && (
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              tooltip="Admin"
+              isActive={pathname === "/admin"}
+              render={<Link href="/admin" />}
+            >
+              <ShieldUser />
+              <span>Admin</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        )}
 
         {items.map((item) => {
           const isActive = pathname ? (pathname === item.url || pathname.startsWith(`${item.url}/`)) : false

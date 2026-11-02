@@ -1,12 +1,12 @@
 import { pgTable, uuid, integer, boolean, timestamp, index } from "drizzle-orm/pg-core";
-import { users } from "./users";
+import { user } from "../auth";
 import { content } from "./content";
 import { episodes } from "./episodes";
 
 export const watchHistory = pgTable("watch_history", {
   id: uuid("id").defaultRandom().primaryKey(),
   userId: uuid("user_id")
-    .references(() => users.id, { onDelete: "cascade" })
+    .references(() => user.id, { onDelete: "cascade" })
     .notNull(),
   episodeId: uuid("episode_id")
     .references(() => episodes.id, { onDelete: "cascade" }),

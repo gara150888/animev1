@@ -6,13 +6,17 @@ export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   const isAuthRoute = pathname.startsWith("/login");
-  const isProtectedRoute = pathname.startsWith("/restricted")
-  const isAdminCheck = pathname.startsWith("/admin")
+  const isProtectedRoute = pathname.startsWith("/restricted");
+  const isAdminRoute = pathname.startsWith("/admin");
 
-  if (isProtectedRoute && !sessionCookie) {
+  const redirectToLogin = () => {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("callbackUrl", pathname);
     return NextResponse.redirect(loginUrl);
+  };
+
+  if ((isProtectedRoute || isAdminRoute) && !sessionCookie) {
+    return redirectToLogin();
   }
 
   if (isAuthRoute && sessionCookie) {
@@ -24,14 +28,6 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - assets (public assets)
-     * - favicon.ico, sitemap.xml, robots.txt (metadata files)
-     */
     "/((?!api|_next/static|_next/image|assets|favicon.ico|sitemap.xml|robots.txt).*)",
   ],
 };
