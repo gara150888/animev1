@@ -148,6 +148,7 @@
     "packages/zod": {
       "name": "@Zlo/zod",
       "dependencies": {
+        "@Zlo/db": "workspace:*",
         "zod": "catalog:",
       },
       "devDependencies": {

@@ -53,6 +53,10 @@ const data: {
           title: "Roles",
           url: "/admin/roles",
         },
+        {
+          title: "Content",
+          url: "/admin/content",
+        }
       ],
     },
   ],

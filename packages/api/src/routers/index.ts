@@ -1,11 +1,13 @@
 import { protectedProcedure, publicProcedure, router } from "../index";
 import { HomeRouter } from "./route/home";
 import { adminRouter, type AdminRouter } from "./route/admin";
+import { contentRouter, type ContentRouter } from "./route/content";
 
 export const appRouter = router({
   healthCheck: publicProcedure.query(() => "OK"),
   home: HomeRouter,
   admin: adminRouter,
+  content: contentRouter,
   privateData: protectedProcedure.query(({ ctx }) => {
     return {
       message: "This is private",
@@ -19,5 +21,5 @@ export type AppRouter = typeof appRouter;
 export {
   HomeRouter,
 };
-export type { AdminRouter };
+export type { AdminRouter, ContentRouter };
 
