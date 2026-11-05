@@ -5,6 +5,31 @@ type ServerContentItem = inferProcedureOutput<AppRouter["content"]["list"]>[numb
 
 export type ContentItem = Omit<ServerContentItem, "createdAt" | "updatedAt">;
 
+export type SeasonItem = inferProcedureOutput<AppRouter["content"]["seasons"]["list"]>[number];
+
+type ServerEpisodeItem = inferProcedureOutput<
+  AppRouter["content"]["seasons"]["episodes"]["list"]
+>[number];
+
+export type EpisodeItem = Omit<ServerEpisodeItem, "createdAt">;
+
+export type SourceItem = inferProcedureOutput<
+  AppRouter["content"]["seasons"]["episodes"]["sources"]["list"]
+>[number];
+
+export type AnimeSearchResult = {
+  title: string;
+  slug: string;
+  type: string;
+  description: string | null;
+  poster: string | null;
+  banner: string | null;
+  releaseYear: number | null;
+  status: string | null;
+  rating: number | null;
+  isAdult: boolean;
+};
+
 export const contentTypeLabel: Record<ContentItem["type"], string> = {
   ANIME: "Anime",
   MOVIE: "Movie",

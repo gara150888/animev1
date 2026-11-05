@@ -4,6 +4,7 @@ import * as React from "react";
 import { toast } from "sonner";
 
 import { contentInputSchema } from "@Zlo/zod/content";
+import { AnimeSearch } from "./anime-search";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,7 +25,18 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { contentStatusLabel, contentTypeLabel, type ContentItem } from "./types";
+import {
+  contentStatusLabel,
+  contentTypeLabel,
+  type AnimeSearchResult,
+  type ContentItem,
+} from "./types";
+
+const STATUS_MAP: Record<string, ContentItem["status"]> = {
+  FINISHED: "COMPLETED",
+  RELEASING: "ONGOING",
+  NOT_YET_RELEASED: "UPCOMING",
+};
 
 type FormState = {
   title: string;
@@ -87,6 +99,21 @@ export function ContentFormDialog({
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) =>
     setForm((current) => ({ ...current, [key]: value }));
 
+  const handleAnimeSelect = (item: AnimeSearchResult) => {
+    setForm({
+      title: item.title,
+      slug: item.slug,
+      type: "ANIME",
+      description: item.description?.replace(/<[^>]+>/g, "") ?? "",
+      poster: item.poster ?? "",
+      banner: item.banner ?? "",
+      releaseYear: item.releaseYear?.toString() ?? "",
+      status: STATUS_MAP[item.status ?? ""] ?? "",
+      rating: typeof item.rating === "number" ? String(Math.round(item.rating / 10)) : "",
+      isAdult: item.isAdult,
+    });
+  };
+
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
 
@@ -120,6 +147,8 @@ export function ContentFormDialog({
             {content ? "Update the details for this title." : "Add a new title to the catalogue."}
           </DialogDescription>
         </DialogHeader>
+
+        {!content && <AnimeSearch onSelect={handleAnimeSelect} />}
 
         <form onSubmit={handleSubmit} className="grid gap-4">
           <div className="grid gap-1.5">

@@ -1,7 +1,9 @@
 "use client";
 
-import { PencilIcon, Trash2Icon } from "lucide-react";
+import { ListVideoIcon, PencilIcon, Trash2Icon } from "lucide-react";
+import Link from "next/link";
 
+import type { AppRoute } from "@/lib/routes";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -76,6 +78,15 @@ export function ContentTable({
             <TableCell>{item.rating ?? "—"}</TableCell>
             <TableCell className="text-right">
               <div className="flex justify-end gap-1">
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  nativeButton={false}
+                  aria-label={`Manage seasons for ${item.title}`}
+                  render={<Link href={`/admin/content/${item.id}/seasons` as AppRoute} />}
+                >
+                  <ListVideoIcon />
+                </Button>
                 <Button
                   variant="ghost"
                   size="icon-sm"
