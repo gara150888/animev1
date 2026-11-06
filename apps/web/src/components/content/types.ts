@@ -7,6 +7,8 @@ export type ContentItem = Omit<ServerContentItem, "createdAt" | "updatedAt">;
 
 export type SeasonItem = inferProcedureOutput<AppRouter["content"]["seasons"]["list"]>[number];
 
+export type GenreItem = inferProcedureOutput<AppRouter["content"]["genres"]["list"]>[number];
+
 type ServerEpisodeItem = inferProcedureOutput<
   AppRouter["content"]["seasons"]["episodes"]["list"]
 >[number];

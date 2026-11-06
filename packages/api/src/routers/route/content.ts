@@ -7,6 +7,9 @@ import {
   episodeUpdateSchema,
   episodesBulkCreateSchema,
   episodesBulkDeleteSchema,
+  genreIdSchema,
+  genreInputSchema,
+  genreUpdateSchema,
   seasonCreateSchema,
   seasonIdSchema,
   seasonUpdateSchema,
@@ -20,21 +23,25 @@ import {
   createContent,
   createEpisode,
   createEpisodesBulk,
+  createGenre,
   createSeason,
   createSource,
   createSourcesBulk,
   deleteContent,
   deleteEpisode,
   deleteEpisodesBulk,
+  deleteGenre,
   deleteSeason,
   deleteSource,
   getContentById,
   listContent,
   listEpisodesBySeason,
+  listGenres,
   listSeasonsByContent,
   listSourcesByEpisode,
   updateContent,
   updateEpisode,
+  updateGenre,
   updateSeason,
   updateSource,
 } from "../../server/services/content";
@@ -54,6 +61,18 @@ export const contentRouter = router({
   delete: adminProcedure
     .input(contentIdSchema)
     .mutation(({ input }) => deleteContent(input.id)),
+
+  genres: router({
+    list: adminProcedure.query(() => listGenres()),
+
+    create: adminProcedure.input(genreInputSchema).mutation(({ input }) => createGenre(input)),
+
+    update: adminProcedure
+      .input(genreIdSchema.extend({ data: genreUpdateSchema }))
+      .mutation(({ input }) => updateGenre(input.id, input.data)),
+
+    delete: adminProcedure.input(genreIdSchema).mutation(({ input }) => deleteGenre(input.id)),
+  }),
 
   seasons: router({
     list: adminProcedure

@@ -56,6 +56,10 @@ const data: {
         {
           title: "Content",
           url: "/admin/content",
+        },
+        {
+          title: "Genres",
+          url: "/admin/genres",
         }
       ],
     },

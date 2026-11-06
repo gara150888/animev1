@@ -21,8 +21,21 @@ export const contentInputSchema = z.object({
 
 export const contentUpdateSchema = contentInputSchema.partial();
 
+export const genreInputSchema = z.object({
+  name: z.string().min(1).max(100),
+  slug: z.string().min(1).max(100),
+});
+
+export const genreUpdateSchema = genreInputSchema.partial();
+
+export const genreIdSchema = z.object({
+  id: z.string().uuid(),
+});
+
 export type ContentInput = z.infer<typeof contentInputSchema>;
 export type ContentUpdate = z.infer<typeof contentUpdateSchema>;
+export type GenreInput = z.infer<typeof genreInputSchema>;
+export type GenreUpdate = z.infer<typeof genreUpdateSchema>;
 
 export const seasonCreateSchema = z.object({
   contentId: z.string().uuid(),

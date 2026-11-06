@@ -1,11 +1,13 @@
 "use client";
 
 import * as React from "react";
+import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import { contentInputSchema } from "@Zlo/zod/content";
 import { AnimeSearch } from "./anime-search";
 import { Checkbox } from "@/components/ui/checkbox";
+import { trpc } from "@/utils/trpc";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -49,6 +51,7 @@ type FormState = {
   status: string;
   rating: string;
   isAdult: boolean;
+  genreIds: string[];
 };
 
 const emptyForm: FormState = {
@@ -62,6 +65,7 @@ const emptyForm: FormState = {
   status: "",
   rating: "",
   isAdult: false,
+  genreIds: [],
 };
 
 function toForm(item: ContentItem): FormState {
@@ -76,6 +80,7 @@ function toForm(item: ContentItem): FormState {
     status: item.status ?? "",
     rating: item.rating?.toString() ?? "",
     isAdult: item.isAdult ?? false,
+    genreIds: item.genreIds ?? [],
   };
 }
 
@@ -91,6 +96,14 @@ export function ContentFormDialog({
   onSubmit: (values: ReturnType<typeof contentInputSchema.parse>) => void;
 }) {
   const [form, setForm] = React.useState<FormState>(emptyForm);
+  const { data: genres } = useQuery(trpc.content.genres.list.queryOptions());
+
+  const toggleGenre = (id: string, checked: boolean) => {
+    set(
+      "genreIds",
+      checked ? [...form.genreIds, id] : form.genreIds.filter((genreId) => genreId !== id),
+    );
+  };
 
   React.useEffect(() => {
     if (open) setForm(content ? toForm(content) : emptyForm);
@@ -111,6 +124,7 @@ export function ContentFormDialog({
       status: STATUS_MAP[item.status ?? ""] ?? "",
       rating: typeof item.rating === "number" ? String(Math.round(item.rating / 10)) : "",
       isAdult: item.isAdult,
+      genreIds: form.genreIds,
     });
   };
 
@@ -128,6 +142,7 @@ export function ContentFormDialog({
       status: form.status === "" ? null : (form.status as ContentItem["status"]),
       rating: form.rating === "" ? null : Number(form.rating),
       isAdult: form.isAdult,
+      genreIds: form.genreIds,
     });
 
     if (!result.success) {
@@ -276,6 +291,28 @@ export function ContentFormDialog({
             />
             Adult content
           </Label>
+
+          <div className="grid gap-1.5">
+            <Label>Genres</Label>
+            {!genres?.length ? (
+              <p className="text-sm text-muted-foreground">No genres yet.</p>
+            ) : (
+              <div className="grid max-h-40 gap-1 overflow-y-auto rounded-lg border p-1">
+                {genres.map((genre) => (
+                  <label
+                    key={genre.id}
+                    className="flex cursor-pointer items-center gap-2 rounded px-2 py-1 text-sm hover:bg-muted"
+                  >
+                    <Checkbox
+                      checked={form.genreIds.includes(genre.id)}
+                      onCheckedChange={(checked) => toggleGenre(genre.id, checked === true)}
+                    />
+                    {genre.name}
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
 
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>

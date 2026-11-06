@@ -7,6 +7,8 @@ import type {
   EpisodeCreate,
   EpisodeUpdate,
   EpisodesBulkCreate,
+  GenreInput,
+  GenreUpdate,
   ImportedEpisode,
   ImportedSeason,
   SeasonCreate,
@@ -21,9 +23,22 @@ import type {
 // ============================================================
 
 export async function listContent() {
-  return db.query.content.findMany({
+  const rows = await db.query.content.findMany({
     orderBy: [desc(schema.content.createdAt)],
   });
+
+  const links = await db.select().from(schema.contentGenres);
+  const genresByContent = new Map<string, string[]>();
+  for (const link of links) {
+    const ids = genresByContent.get(link.contentId) ?? [];
+    ids.push(link.genreId);
+    genresByContent.set(link.contentId, ids);
+  }
+
+  return rows.map((row) => ({
+    ...row,
+    genreIds: genresByContent.get(row.id) ?? [],
+  }));
 }
 
 export async function getContentById(id: string) {
@@ -86,6 +101,41 @@ export async function deleteContent(id: string) {
   const [deleted] = await db
     .delete(schema.content)
     .where(eq(schema.content.id, id))
+    .returning();
+
+  return deleted ?? null;
+}
+
+// ============================================================
+// Genres
+// ============================================================
+
+export async function listGenres() {
+  return db.select().from(schema.genres).orderBy(schema.genres.name);
+}
+
+export async function createGenre(input: GenreInput) {
+  const [created] = await db.insert(schema.genres).values(input).returning();
+
+  if (!created) throw new Error("Failed to create genre");
+
+  return created;
+}
+
+export async function updateGenre(id: string, input: GenreUpdate) {
+  const [updated] = await db
+    .update(schema.genres)
+    .set(input)
+    .where(eq(schema.genres.id, id))
+    .returning();
+
+  return updated ?? null;
+}
+
+export async function deleteGenre(id: string) {
+  const [deleted] = await db
+    .delete(schema.genres)
+    .where(eq(schema.genres.id, id))
     .returning();
 
   return deleted ?? null;
