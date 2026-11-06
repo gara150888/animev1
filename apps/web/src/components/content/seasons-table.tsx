@@ -25,6 +25,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import type { SeasonItem } from "./types";
+import { cn } from "@/lib/utils";
 
 export function SeasonsTable({
   items,
@@ -40,6 +41,7 @@ export function SeasonsTable({
       <TableHeader>
         <TableRow>
           <TableHead className="w-32">Season</TableHead>
+          <TableHead className="w-32">Episodes</TableHead>
           <TableHead>Title</TableHead>
           <TableHead className="text-right">Actions</TableHead>
         </TableRow>
@@ -48,6 +50,7 @@ export function SeasonsTable({
         {items.map((item) => (
           <TableRow key={item.id}>
             <TableCell className="font-medium">{item.seasonNumber}</TableCell>
+            <TableCell className={cn(item.episodeCount ? "font-medium" : "text-muted-foreground")}>{item.episodeCount}</TableCell>
             <TableCell>{item.title ?? <span className="text-muted-foreground">—</span>}</TableCell>
             <TableCell className="text-right">
               <div className="flex justify-end gap-1">

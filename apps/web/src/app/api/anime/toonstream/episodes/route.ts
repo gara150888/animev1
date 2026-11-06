@@ -65,10 +65,17 @@ async function fetchSeasonEpisodes(slug: string, season: number) {
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");
-  const season = Number(searchParams.get("season"));
+  const rawSeason = searchParams.get("season");
+  let season = 1;
+  if (rawSeason !== null) {
+    season = Math.trunc(Number(rawSeason));
+    if (!Number.isFinite(season)) {
+      return NextResponse.json({ error: "Invalid season" }, { status: 400 });
+    }
+  }
 
-  if (!id || !Number.isInteger(season) || season < 1) {
-    return NextResponse.json({ error: "Missing id or season" }, { status: 400 });
+  if (!id) {
+    return NextResponse.json({ error: "Missing id" }, { status: 400 });
   }
 
   const data = await fetchSeasonEpisodes(id, season);

@@ -1,4 +1,4 @@
-import { desc, eq } from "drizzle-orm";
+import { count, desc, eq } from "drizzle-orm";
 import { db } from "@Zlo/db";
 import * as schema from "@Zlo/db/schema/index";
 import type {
@@ -97,9 +97,17 @@ export async function deleteContent(id: string) {
 
 export async function listSeasonsByContent(contentId: string) {
   return db
-    .select()
+    .select({
+      id: schema.seasons.id,
+      contentId: schema.seasons.contentId,
+      seasonNumber: schema.seasons.seasonNumber,
+      title: schema.seasons.title,
+      episodeCount: count(schema.episodes.id),
+    })
     .from(schema.seasons)
+    .leftJoin(schema.episodes, eq(schema.episodes.seasonId, schema.seasons.id))
     .where(eq(schema.seasons.contentId, contentId))
+    .groupBy(schema.seasons.id, schema.seasons.contentId, schema.seasons.seasonNumber, schema.seasons.title)
     .orderBy(schema.seasons.seasonNumber);
 }
 
