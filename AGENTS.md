@@ -35,10 +35,12 @@ packages/zod/        shared zod schemas (@Zlo/zod): subscription, reminder, dash
 - `test` — `bun run --filter @Zlo/api test`
 
 ## Important implementation details
-- **tRPC**: entry at `packages/api/src/index.ts`; `publicProcedure`, `protectedProcedure` (requires session), `adminProcedure` (hardcoded admin `vg312809@gmail.com`). Routers in `packages/api/src/routers/` (`index.ts` exports `appRouter` + `HomeRouter`; `home.ts`).
+- **tRPC**: entry at `packages/api/src/index.ts`; `publicProcedure`, `protectedProcedure` (requires session), `adminProcedure` (hardcoded admin `vg312809@gmail.com`). Routers in `packages/api/src/routers/` (`index.ts` exports `appRouter` + `HomeRouter`; `home.ts`, `admin.ts`).
+- **Admin service**: `packages/api/src/server/services/admin/index.ts` — full CRUD for users, content, seasons, episodes, genres, sources, plus dashboard stats.
+- **Admin UI**: `apps/web/src/app/(protected)/admin/page.tsx` — stats cards, users table (role edit/delete), content table (add/edit/delete), genres table (add/edit/delete).
 - **Auth context**: `packages/api/src/context.ts` creates `Context { session }` from `better-auth` session via `NextRequest` headers.
 - **Auth**: `packages/auth/src/index.ts` builds `betterAuth` with drizzle adapter (PG), `emailAndPassword.enabled`, Google social provider, `nextCookies()` plugin. Trusted origin from `env.CORS_ORIGIN`.
-- **DB client**: `packages/db/src/index.ts` — `neon(env.DATABASE_URL)` + `drizzle(sql, { schema })`. Schema split into `schema/auth/` and `schema/content/` (content.ts, enums.ts, episodes.ts, genres.ts, seasons.ts, sources.ts, users.ts, watch-history.ts, watchlist.ts, content-genres.ts).
+- **DB client**: `packages/db/src/index.ts` — `neon(env.DATABASE_URL)` + `drizzle(sql, { schema })`. Schema split into `schema/auth/` and `schema/content/` (content.ts, enums.ts, episodes.ts, genres.ts, seasons.ts, sources.ts, users.ts, watch-history.ts, watchlist.ts, content-genres.ts). `user` table has `role` column (default `"user"`).
 - **Env**: `packages/env/src/server.ts` validates `DATABASE_URL`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `CORS_ORIGIN`, `NODE_ENV`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`. `web.ts` is empty client env. `native.ts` for `EXPO_PUBLIC_` prefix (unused).
 - **Crypto**: `packages/db/src/server/crypto.ts` — AES-256-GCM encryption for Instagram tokens (`INSTAGRAM_ENCRYPTION_KEY` env required).
 - **tRPC client**: `apps/web/src/utils/trpc.ts` — `httpBatchLink` to `/api/trpc` with `credentials: "include"`.

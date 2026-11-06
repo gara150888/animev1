@@ -1,0 +1,327 @@
+"use client";
+
+import * as React from "react";
+import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
+
+import { contentInputSchema } from "@Zlo/zod/content";
+import { AnimeSearch } from "./anime-search";
+import { Checkbox } from "@/components/ui/checkbox";
+import { trpc } from "@/utils/trpc";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  contentStatusLabel,
+  contentTypeLabel,
+  type AnimeSearchResult,
+  type ContentItem,
+} from "./types";
+
+const STATUS_MAP: Record<string, ContentItem["status"]> = {
+  FINISHED: "COMPLETED",
+  RELEASING: "ONGOING",
+  NOT_YET_RELEASED: "UPCOMING",
+};
+
+type FormState = {
+  title: string;
+  slug: string;
+  type: ContentItem["type"];
+  description: string;
+  poster: string;
+  banner: string;
+  releaseYear: string;
+  status: string;
+  rating: string;
+  isAdult: boolean;
+  genreIds: string[];
+};
+
+const emptyForm: FormState = {
+  title: "",
+  slug: "",
+  type: "ANIME",
+  description: "",
+  poster: "",
+  banner: "",
+  releaseYear: "",
+  status: "",
+  rating: "",
+  isAdult: false,
+  genreIds: [],
+};
+
+function toForm(item: ContentItem): FormState {
+  return {
+    title: item.title,
+    slug: item.slug,
+    type: item.type,
+    description: item.description ?? "",
+    poster: item.poster ?? "",
+    banner: item.banner ?? "",
+    releaseYear: item.releaseYear?.toString() ?? "",
+    status: item.status ?? "",
+    rating: item.rating?.toString() ?? "",
+    isAdult: item.isAdult ?? false,
+    genreIds: item.genreIds ?? [],
+  };
+}
+
+export function ContentFormDialog({
+  open,
+  onOpenChange,
+  content,
+  onSubmit,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  content: ContentItem | null;
+  onSubmit: (values: ReturnType<typeof contentInputSchema.parse>) => void;
+}) {
+  const [form, setForm] = React.useState<FormState>(emptyForm);
+  const { data: genres } = useQuery(trpc.content.genres.list.queryOptions());
+
+  const toggleGenre = (id: string, checked: boolean) => {
+    set(
+      "genreIds",
+      checked ? [...form.genreIds, id] : form.genreIds.filter((genreId) => genreId !== id),
+    );
+  };
+
+  React.useEffect(() => {
+    if (open) setForm(content ? toForm(content) : emptyForm);
+  }, [open, content]);
+
+  const set = <K extends keyof FormState>(key: K, value: FormState[K]) =>
+    setForm((current) => ({ ...current, [key]: value }));
+
+  const handleAnimeSelect = (item: AnimeSearchResult) => {
+    setForm({
+      title: item.title,
+      slug: item.slug,
+      type: "ANIME",
+      description: item.description?.replace(/<[^>]+>/g, "") ?? "",
+      poster: item.poster ?? "",
+      banner: item.banner ?? "",
+      releaseYear: item.releaseYear?.toString() ?? "",
+      status: STATUS_MAP[item.status ?? ""] ?? "",
+      rating: typeof item.rating === "number" ? String(Math.round(item.rating / 10)) : "",
+      isAdult: item.isAdult,
+      genreIds: form.genreIds,
+    });
+  };
+
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+
+    const result = contentInputSchema.safeParse({
+      title: form.title.trim(),
+      slug: form.slug.trim(),
+      type: form.type,
+      description: form.description.trim() || null,
+      poster: form.poster.trim() || null,
+      banner: form.banner.trim() || null,
+      releaseYear: form.releaseYear === "" ? null : Number(form.releaseYear),
+      status: form.status === "" ? null : (form.status as ContentItem["status"]),
+      rating: form.rating === "" ? null : Number(form.rating),
+      isAdult: form.isAdult,
+      genreIds: form.genreIds,
+    });
+
+    if (!result.success) {
+      toast.error(result.error.issues[0]?.message ?? "Invalid form");
+      return;
+    }
+
+    onSubmit(result.data);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>{content ? "Edit content" : "Add content"}</DialogTitle>
+          <DialogDescription>
+            {content ? "Update the details for this title." : "Add a new title to the catalogue."}
+          </DialogDescription>
+        </DialogHeader>
+
+        {!content && <AnimeSearch onSelect={handleAnimeSelect} />}
+
+        <form onSubmit={handleSubmit} className="grid gap-4">
+          <div className="grid gap-1.5">
+            <Label htmlFor="title">Title</Label>
+            <Input
+              id="title"
+              required
+              value={form.title}
+              onChange={(event) => set("title", event.target.value)}
+              placeholder="e.g. One Piece"
+            />
+          </div>
+
+          <div className="grid gap-1.5">
+            <Label htmlFor="slug">Slug</Label>
+            <Input
+              id="slug"
+              required
+              value={form.slug}
+              onChange={(event) => set("slug", event.target.value)}
+              placeholder="one-piece"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="grid gap-1.5">
+              <Label>Type</Label>
+              <Select
+                value={form.type}
+                onValueChange={(value) => set("type", value as ContentItem["type"])}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {(Object.keys(contentTypeLabel) as ContentItem["type"][]).map((type) => (
+                    <SelectItem key={type} value={type}>
+                      {contentTypeLabel[type]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid gap-1.5">
+              <Label>Status</Label>
+              <Select value={form.status} onValueChange={(value) => set("status", value ?? "")}>
+                <SelectTrigger>
+                  <SelectValue placeholder="None" />
+                </SelectTrigger>
+                <SelectContent>
+                  {(
+                    Object.keys(contentStatusLabel) as NonNullable<ContentItem["status"]>[]
+                  ).map((status) => (
+                    <SelectItem key={status} value={status}>
+                      {contentStatusLabel[status]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="grid gap-1.5">
+              <Label htmlFor="release-year">Release year</Label>
+              <Input
+                id="release-year"
+                type="number"
+                min={1850}
+                max={2100}
+                value={form.releaseYear}
+                onChange={(event) => set("releaseYear", event.target.value)}
+              />
+            </div>
+
+            <div className="grid gap-1.5">
+              <Label htmlFor="rating">Rating (0–10)</Label>
+              <Input
+                id="rating"
+                type="number"
+                min={0}
+                max={10}
+                step={1}
+                value={form.rating}
+                onChange={(event) => set("rating", event.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="grid gap-1.5">
+            <Label htmlFor="description">Description</Label>
+            <Textarea
+              className="h-40"
+              id="description"
+              value={form.description}
+              onChange={(event) => set("description", event.target.value)}
+            />
+          </div>
+
+          <div className="grid gap-1.5">
+            <Label htmlFor="poster">Poster URL</Label>
+            <Input
+              id="poster"
+              type="url"
+              value={form.poster}
+              onChange={(event) => set("poster", event.target.value)}
+            />
+          </div>
+
+          <div className="grid gap-1.5">
+            <Label htmlFor="banner">Banner URL</Label>
+            <Input
+              id="banner"
+              type="url"
+              value={form.banner}
+              onChange={(event) => set("banner", event.target.value)}
+            />
+          </div>
+
+          <Label className="flex items-center gap-2">
+            <Checkbox
+              checked={form.isAdult}
+              onCheckedChange={(checked) => set("isAdult", checked === true)}
+            />
+            Adult content
+          </Label>
+
+          <div className="grid gap-1.5">
+            <Label>Genres</Label>
+            {!genres?.length ? (
+              <p className="text-sm text-muted-foreground">No genres yet.</p>
+            ) : (
+              <div className="grid max-h-40 gap-1 overflow-y-auto rounded-lg border p-1">
+                {genres.map((genre) => (
+                  <label
+                    key={genre.id}
+                    className="flex cursor-pointer items-center gap-2 rounded px-2 py-1 text-sm hover:bg-muted"
+                  >
+                    <Checkbox
+                      checked={form.genreIds.includes(genre.id)}
+                      onCheckedChange={(checked) => toggleGenre(genre.id, checked === true)}
+                    />
+                    {genre.name}
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
+              Cancel
+            </Button>
+            <Button type="submit">{content ? "Save changes" : "Create"}</Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}

@@ -1,7 +1,7 @@
 "use client";
 
-import { HeroTerminal } from "@/components/home";
+import Home from "@/components/home";
 
 export default function HomePage() {
-  return <HeroTerminal />;
+  return <Home />;
 }

@@ -1,10 +1,10 @@
 import { pgTable, uuid, timestamp, primaryKey } from "drizzle-orm/pg-core";
-import { users } from "./users";
+import { user } from "../auth";
 import { content } from "./content";
 
 export const watchlist = pgTable("watchlist", {
   userId: uuid("user_id")
-    .references(() => users.id, { onDelete: "cascade" })
+    .references(() => user.id, { onDelete: "cascade" })
     .notNull(),
   contentId: uuid("content_id")
     .references(() => content.id, { onDelete: "cascade" })

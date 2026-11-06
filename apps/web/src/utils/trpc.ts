@@ -8,6 +8,7 @@ import { toast } from "sonner";
 export const queryClient = new QueryClient({
   queryCache: new QueryCache({
     onError: (error, query) => {
+      if (error.message === "Admin access required") return;
       toast.error(error.message, {
         action: {
           label: "retry",

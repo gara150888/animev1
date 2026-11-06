@@ -41,6 +41,7 @@
     "check-types": "tsc --noEmit"
   },
   "dependencies": {
+    "@Zlo/db": "workspace:*",
     "zod": "catalog:"
   },
   "devDependencies": {
