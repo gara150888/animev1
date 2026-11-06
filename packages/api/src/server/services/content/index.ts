@@ -1,4 +1,4 @@
-import { count, desc, eq } from "drizzle-orm";
+import { count, desc, eq, inArray } from "drizzle-orm";
 import { db } from "@Zlo/db";
 import * as schema from "@Zlo/db/schema/index";
 import type {
@@ -230,6 +230,15 @@ export async function deleteEpisode(id: string) {
     .returning();
 
   return deleted ?? null;
+}
+
+export async function deleteEpisodesBulk(ids: string[]) {
+  if (!ids.length) return [];
+
+  return db
+    .delete(schema.episodes)
+    .where(inArray(schema.episodes.id, ids))
+    .returning();
 }
 
 // ============================================================

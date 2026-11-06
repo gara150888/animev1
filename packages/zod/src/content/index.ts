@@ -93,12 +93,17 @@ export const episodesImportSchema = z.object({
   slug: z.string().min(1).max(255),
 });
 
+export const episodesBulkDeleteSchema = z.object({
+  ids: z.array(z.string().uuid()).min(1),
+});
+
 export type EpisodeCreate = z.infer<typeof episodeCreateSchema>;
 export type EpisodeUpdate = z.infer<typeof episodeUpdateSchema>;
 export type EpisodeBulkItem = z.infer<typeof episodeBulkItemSchema>;
 export type EpisodesBulkCreate = z.infer<typeof episodesBulkCreateSchema>;
 export type ImportedEpisode = z.infer<typeof importedEpisodeSchema>;
 export type EpisodesImport = z.infer<typeof episodesImportSchema>;
+export type EpisodesBulkDelete = z.infer<typeof episodesBulkDeleteSchema>;
 
 export const sourceCreateSchema = z.object({
   episodeId: z.string().uuid(),

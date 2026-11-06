@@ -6,6 +6,7 @@ import {
   episodeIdSchema,
   episodeUpdateSchema,
   episodesBulkCreateSchema,
+  episodesBulkDeleteSchema,
   seasonCreateSchema,
   seasonIdSchema,
   seasonUpdateSchema,
@@ -24,6 +25,7 @@ import {
   createSourcesBulk,
   deleteContent,
   deleteEpisode,
+  deleteEpisodesBulk,
   deleteSeason,
   deleteSource,
   getContentById,
@@ -82,6 +84,10 @@ export const contentRouter = router({
         .mutation(({ input }) => updateEpisode(input.id, input.data)),
 
       delete: adminProcedure.input(episodeIdSchema).mutation(({ input }) => deleteEpisode(input.id)),
+
+      bulkDelete: adminProcedure
+        .input(episodesBulkDeleteSchema)
+        .mutation(({ input }) => deleteEpisodesBulk(input.ids)),
 
       sources: router({
         list: adminProcedure

@@ -75,6 +75,16 @@ export default function AdminEpisodesPage() {
     }),
   );
 
+  const bulkDelete = useMutation(
+    trpc.content.seasons.episodes.bulkDelete.mutationOptions({
+      onSuccess: (deleted) => {
+        invalidateEpisodes();
+        toast.success(`${deleted.length} episodes deleted`);
+      },
+      onError: (error) => toast.error(error.message),
+    }),
+  );
+
   const bulkCreate = useMutation(
     trpc.content.seasons.episodes.bulkCreate.mutationOptions({
       onSuccess: (created) => {
@@ -161,6 +171,7 @@ export default function AdminEpisodesPage() {
           items={episodes}
           onEdit={openEdit}
           onDelete={(id) => remove.mutate({ id })}
+          onBulkDelete={(ids) => bulkDelete.mutate({ ids })}
         />
       ) : (
         <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed py-16 text-center">
