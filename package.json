@@ -36,6 +36,8 @@
   "dependencies": {
     "@Zlo/env": "workspace:*",
     "dotenv": "catalog:",
+    "header-generator": "^2.1.89",
+    "undici": "^8.12.4",
     "zod": "catalog:"
   },
   "devDependencies": {

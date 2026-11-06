@@ -17,6 +17,9 @@
     "./server/services/*": {
       "default": "./src/server/services/*.ts"
     },
+    "./server/services/content": {
+      "default": "./src/server/services/content/index.ts"
+    },
     "./server/services/automation/*": {
       "default": "./src/server/services/automation/*.ts"
     }

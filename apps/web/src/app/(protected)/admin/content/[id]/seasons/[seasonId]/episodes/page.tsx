@@ -2,15 +2,16 @@
 
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeftIcon, LayersIcon, PlusIcon } from "lucide-react";
+import { ArrowLeftIcon, DownloadIcon, LayersIcon, PlusIcon } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { toast } from "sonner";
 
 import { EpisodeFormDialog, type EpisodeFormValues } from "@/components/content/episode-form-dialog";
+import { EpisodeImportDialog } from "@/components/content/episode-import-dialog";
 import { EpisodesBulkDialog } from "@/components/content/episodes-bulk-dialog";
 import { EpisodesTable } from "@/components/content/episodes-table";
-import type { EpisodeItem } from "@/components/content/types";
+import type { EpisodeImportResult, EpisodeItem } from "@/components/content/types";
 import type { AppRoute } from "@/lib/routes";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -20,6 +21,8 @@ export default function AdminEpisodesPage() {
   const params = useParams<{ id: string; seasonId: string }>();
   const { id: contentId, seasonId } = params;
   const queryClient = useQueryClient();
+
+  const { data: contentItem } = useQuery(trpc.content.get.queryOptions({ id: contentId }));
 
   const { data: seasons } = useQuery(
     trpc.content.seasons.list.queryOptions({ id: contentId }),
@@ -32,6 +35,7 @@ export default function AdminEpisodesPage() {
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [bulkOpen, setBulkOpen] = useState(false);
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [editing, setEditing] = useState<EpisodeItem | null>(null);
 
   const invalidateEpisodes = () =>
@@ -87,6 +91,14 @@ export default function AdminEpisodesPage() {
     setDialogOpen(true);
   };
 
+  const handleImported = (result: EpisodeImportResult) => {
+    invalidateEpisodes();
+    toast.success(
+      `Added ${result.created.length} episode${result.created.length === 1 ? "" : "s"}` +
+        (result.skipped > 0 ? ` (${result.skipped} already existed)` : ""),
+    );
+  };
+
   const openEdit = (item: EpisodeItem) => {
     setEditing(item);
     setDialogOpen(true);
@@ -123,6 +135,10 @@ export default function AdminEpisodesPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={() => setImportDialogOpen(true)}>
+            <DownloadIcon />
+            Add via API
+          </Button>
           <Button variant="outline" onClick={() => setBulkOpen(true)}>
             <LayersIcon />
             Bulk add
@@ -170,6 +186,16 @@ export default function AdminEpisodesPage() {
         open={bulkOpen}
         onOpenChange={setBulkOpen}
         onSubmit={(episodes) => bulkCreate.mutate({ seasonId, episodes })}
+      />
+
+      <EpisodeImportDialog
+        open={importDialogOpen}
+        onOpenChange={setImportDialogOpen}
+        seasonId={seasonId}
+        defaultSlug={contentItem?.slug ?? ""}
+        seasonNumber={season?.seasonNumber ?? 1}
+        existingNumbers={(episodes ?? []).map((item) => item.episodeNumber)}
+        onImported={handleImported}
       />
     </div>
   );

@@ -3,7 +3,6 @@
 import * as React from "react";
 import { toast } from "sonner";
 
-import { sourceBulkItemSchema, type SourceBulkItem } from "@Zlo/zod/content";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -15,6 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { sourceBulkItemSchema, type SourceBulkItem } from "@Zlo/zod/content";
 
 export function SourcesBulkDialog({
   open,

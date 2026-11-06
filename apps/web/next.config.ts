@@ -10,6 +10,7 @@ const workspaceRoot = resolve(appDir, "../..");
 const turbopackRoot = existsSync(join(workspaceRoot, "packages")) ? workspaceRoot : appDir;
 
 const nextConfig: NextConfig = {
+  serverExternalPackages: ["header-generator", "generative-bayesian-network"],
   typedRoutes: true,
   reactCompiler: true,
   turbopack: {

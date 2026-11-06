@@ -39,8 +39,20 @@ export const seasonIdSchema = z.object({
   id: z.string().uuid(),
 });
 
+export const importedSeasonSchema = z.object({
+  seasonNumber: z.number().int().min(1),
+  title: z.string().max(255).nullable(),
+});
+
+export const seasonsImportSchema = z.object({
+  contentId: z.string().uuid(),
+  slug: z.string().min(1).max(255),
+});
+
 export type SeasonCreate = z.infer<typeof seasonCreateSchema>;
 export type SeasonUpdate = z.infer<typeof seasonUpdateSchema>;
+export type ImportedSeason = z.infer<typeof importedSeasonSchema>;
+export type SeasonsImport = z.infer<typeof seasonsImportSchema>;
 
 export const episodeCreateSchema = z.object({
   seasonId: z.string().uuid(),
@@ -70,10 +82,23 @@ export const episodesBulkCreateSchema = z.object({
   episodes: z.array(episodeBulkItemSchema).min(1),
 });
 
+export const importedEpisodeSchema = z.object({
+  episodeNumber: z.number().int().min(1),
+  title: z.string().max(255).nullable(),
+  thumbnail: z.string().nullable(),
+});
+
+export const episodesImportSchema = z.object({
+  seasonId: z.string().uuid(),
+  slug: z.string().min(1).max(255),
+});
+
 export type EpisodeCreate = z.infer<typeof episodeCreateSchema>;
 export type EpisodeUpdate = z.infer<typeof episodeUpdateSchema>;
 export type EpisodeBulkItem = z.infer<typeof episodeBulkItemSchema>;
 export type EpisodesBulkCreate = z.infer<typeof episodesBulkCreateSchema>;
+export type ImportedEpisode = z.infer<typeof importedEpisodeSchema>;
+export type EpisodesImport = z.infer<typeof episodesImportSchema>;
 
 export const sourceCreateSchema = z.object({
   episodeId: z.string().uuid(),

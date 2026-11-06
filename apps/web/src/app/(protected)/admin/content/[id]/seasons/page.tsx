@@ -1,15 +1,16 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeftIcon, PlusIcon } from "lucide-react";
+import { ArrowLeftIcon, DownloadIcon, PlusIcon } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 
 import { SeasonFormDialog } from "@/components/content/season-form-dialog";
+import { SeasonImportDialog } from "@/components/content/season-import-dialog";
 import { SeasonsTable } from "@/components/content/seasons-table";
-import type { SeasonItem } from "@/components/content/types";
+import type { SeasonImportResult, SeasonItem } from "@/components/content/types";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { trpc } from "@/utils/trpc";
@@ -25,6 +26,7 @@ export default function AdminSeasonsPage() {
   );
 
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [editing, setEditing] = useState<SeasonItem | null>(null);
 
   const invalidateSeasons = () =>
@@ -67,6 +69,14 @@ export default function AdminSeasonsPage() {
     setDialogOpen(true);
   };
 
+  const handleImported = (result: SeasonImportResult) => {
+    invalidateSeasons();
+    toast.success(
+      `Added ${result.created.length} season${result.created.length === 1 ? "" : "s"}` +
+        (result.skipped > 0 ? ` (${result.skipped} already existed)` : ""),
+    );
+  };
+
   const openEdit = (item: SeasonItem) => {
     setEditing(item);
     setDialogOpen(true);
@@ -94,10 +104,16 @@ export default function AdminSeasonsPage() {
             </p>
           </div>
         </div>
-        <Button onClick={openCreate}>
-          <PlusIcon />
-          Add season
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={() => setImportDialogOpen(true)}>
+            <DownloadIcon />
+            Add via API
+          </Button>
+          <Button onClick={openCreate}>
+            <PlusIcon />
+            Add season
+          </Button>
+        </div>
       </div>
 
       {isLoading ? (
@@ -130,6 +146,15 @@ export default function AdminSeasonsPage() {
         onOpenChange={setDialogOpen}
         season={editing}
         onSubmit={handleSubmit}
+      />
+
+      <SeasonImportDialog
+        open={importDialogOpen}
+        onOpenChange={setImportDialogOpen}
+        contentId={contentId}
+        defaultSlug={contentItem?.slug ?? ""}
+        existingNumbers={(seasons ?? []).map((item) => item.seasonNumber)}
+        onImported={handleImported}
       />
     </div>
   );

@@ -35,8 +35,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const router = useRouter()
 
   const segments = pathname.split("/").filter(Boolean)
-  const currentLabel =
-    routeLabels[segments[0] ?? ""] ?? "Dashboard"
+  const currentLabel = routeLabels[segments[0] ?? ""] ?? "Dashboard"
 
   const searchSubscriptions = (value: string) => {
     const term = value.trim()

@@ -17,6 +17,28 @@ export type SourceItem = inferProcedureOutput<
   AppRouter["content"]["seasons"]["episodes"]["sources"]["list"]
 >[number];
 
+export type SeasonImportPreview = {
+  seriesTitle: string;
+  seasons: { seasonNumber: number; title: string }[];
+};
+
+export type SeasonImportResult = {
+  seriesTitle: string;
+  created: SeasonItem[];
+  skipped: number;
+};
+
+export type EpisodeImportPreview = {
+  seriesTitle: string;
+  episodes: { episodeNumber: number; title: string; thumbnail: string | null; url: string }[];
+};
+
+export type EpisodeImportResult = {
+  seriesTitle: string;
+  created: EpisodeItem[];
+  skipped: number;
+};
+
 export type AnimeSearchResult = {
   title: string;
   slug: string;

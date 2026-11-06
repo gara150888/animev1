@@ -7,6 +7,8 @@ import type {
   EpisodeCreate,
   EpisodeUpdate,
   EpisodesBulkCreate,
+  ImportedEpisode,
+  ImportedSeason,
   SeasonCreate,
   SeasonUpdate,
   SourceCreate,
@@ -109,6 +111,23 @@ export async function createSeason(input: SeasonCreate) {
   return created;
 }
 
+export async function importSeasons(contentId: string, seasons: ImportedSeason[]) {
+  const existing = await db
+    .select({ seasonNumber: schema.seasons.seasonNumber })
+    .from(schema.seasons)
+    .where(eq(schema.seasons.contentId, contentId));
+
+  const existingNumbers = new Set(existing.map((row) => row.seasonNumber));
+  const rows = seasons.filter((season) => !existingNumbers.has(season.seasonNumber));
+
+  if (!rows.length) return [];
+
+  return db
+    .insert(schema.seasons)
+    .values(rows.map((season) => ({ contentId, ...season })))
+    .returning();
+}
+
 export async function updateSeason(id: string, input: SeasonUpdate) {
   const [updated] = await db
     .update(schema.seasons)
@@ -131,6 +150,33 @@ export async function deleteSeason(id: string) {
 // ============================================================
 // Episodes
 // ============================================================
+
+export async function getSeasonById(id: string) {
+  const [row] = await db
+    .select()
+    .from(schema.seasons)
+    .where(eq(schema.seasons.id, id))
+    .limit(1);
+
+  return row ?? null;
+}
+
+export async function importEpisodes(seasonId: string, episodes: ImportedEpisode[]) {
+  const existing = await db
+    .select({ episodeNumber: schema.episodes.episodeNumber })
+    .from(schema.episodes)
+    .where(eq(schema.episodes.seasonId, seasonId));
+
+  const existingNumbers = new Set(existing.map((row) => row.episodeNumber));
+  const rows = episodes.filter((episode) => !existingNumbers.has(episode.episodeNumber));
+
+  if (!rows.length) return [];
+
+  return db
+    .insert(schema.episodes)
+    .values(rows.map((episode) => ({ seasonId, ...episode })))
+    .returning();
+}
 
 export async function listEpisodesBySeason(seasonId: string) {
   return db
